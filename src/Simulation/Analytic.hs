@@ -26,7 +26,7 @@ simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamd
   lprocess = fromIntegral serversCount * fromIntegral processorsCount/(beta*processoringTime)
   ldisking = 1/(beta*diskP*diskingTime)
   kd = (fworkCount - 1) / fworkCount
-  fworkCount = fromIntegral workstaionsCount
+  fworkCount = fromIntegral workstationsCount
   fprocCount = fromIntegral processorsCount 
   fservCount = fromIntegral serversCount
   

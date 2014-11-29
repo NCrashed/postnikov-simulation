@@ -4,38 +4,91 @@ import Simulation.Types
 import Simulation.Analytic
 import Simulation.Process
 import Graphics.Vty.Widgets.All
+import Graphics.Vty.Input.Events
 import qualified Data.Text as T
 import Control.Monad
+import System.Exit (exitSuccess)
 
 main :: IO ()
-main = do
-  let outputAnal = simulateAnalytic defaultInput
-  outputSim <- runSimulateProcess defaultInput
-  print outputAnal
-  print outputSim
+main = gui
+--  let outputAnal = simulateAnalytic defaultInput
+--  outputSim <- runSimulateProcess defaultInput
+--  print outputAnal
+--  print outputSim
 
+editingScreen :: Collection -> (Input -> IO ()) -> IO () -> IO (IO ())
+editingScreen collection okAction cancelAction = do
+  fg <- newFocusGroup
+  tbl <- newTable [column (ColFixed 16), column ColAuto] BorderFull
+  afterQueryTimeEdit <- labeledText fg tbl "afterQueryTime" "80"
+  formQueryTimeEdit <- labeledText fg tbl "formQueryTime" "80"
+  sendingTimeEdit <- labeledText fg tbl "sendingTime" "10"
+  serversCountEdit <- labeledText fg tbl "serversCount" "100"
+  workstationsCountEdit <- labeledText fg tbl "workstationsCount" "100"
+  processorsCountEdit <- labeledText fg tbl "processorsCount"  "100"
+  processoringTimeEdit <- labeledText fg tbl "processoringTime" "10"
+  diskingTimeEdit <- labeledText fg tbl "diskingTime" "10"
+  disksCountEdit <- labeledText fg tbl "disksCount" "100"
+  requeryChanceEdit <- labeledText fg tbl "requeryChance" "0.1"
+  
+  title <- hCentered =<< plainText "Enter model parameters"
+  
+  bOk <- newButton "OK"
+  void $ addToFocusGroup fg (buttonWidget bOk)
+  bOk `onButtonPressed` \_ -> do
+    afterQueryTime' <- getEditText afterQueryTimeEdit
+    formQueryTime' <- getEditText formQueryTimeEdit
+    sendingTime' <- getEditText sendingTimeEdit 
+    serversCount' <- getEditText serversCountEdit
+    workstationsCount' <- getEditText workstationsCountEdit
+    processorsCount' <- getEditText processorsCountEdit
+    processoringTime' <- getEditText processoringTimeEdit
+    diskingTime' <- getEditText diskingTimeEdit
+    disksCount' <- getEditText disksCountEdit
+    requeryChance' <- getEditText requeryChanceEdit
+    
+    okAction Input {
+      workstationsCount = read $ T.unpack workstationsCount'
+    , afterQueryTime = read $ T.unpack afterQueryTime'
+    , formQueryTime = read $ T.unpack formQueryTime'
+    , serversCount = read $ T.unpack serversCount'
+    , processorsCount = read $ T.unpack processorsCount'
+    , disksCount = read $ T.unpack disksCount'
+    , sendingTime = read $ T.unpack sendingTime'
+    , processoringTime = read $ T.unpack processoringTime'
+    , diskingTime = read $ T.unpack diskingTime'
+    , requeryChance = read $ T.unpack requeryChance'
+    }
+    
+  bCancel <- newButton "Cancel"
+  void $ addToFocusGroup fg (buttonWidget bCancel)
+  bCancel `onButtonPressed` const cancelAction
+  
+  screen <- return title 
+    <--> return tbl 
+    <--> (hCentered =<< (return (buttonWidget bOk) <++> return (buttonWidget bCancel)))
+    
+  addToCollection collection screen fg
+  where
+    labeledText fg tbl t1 t2 = do
+      e <- editWidget
+      setEditText e t2
+      void $ addToFocusGroup fg e
+      wt <- plainText t1
+      addRow tbl $ wt .|.  e
+      return e
+      
 gui :: IO()
 gui =  do
-  e <- editWidget
-  ui <- centered e
-  
-  fg <- newFocusGroup
-  void $ addToFocusGroup fg e
-  
+
   c <- newCollection
-  void $ addToCollection c ui fg
-  
-  e `onActivate` (getEditText >=>
-   (error . ("You entered: " ++) . T.unpack))
+  _ <- editingScreen c (const $ return ()) (void exitSuccess)
     
   runUi c defaultContext
-
-inputs :: [Input]
-inputs = [input1, input2, input3, input4, input5]
-
+  
 defaultInput :: Input
 defaultInput = Input {
-  worksationsCount = 8
+  workstationsCount = 8
 , afterQueryTime = 80
 , formQueryTime = 80
 , serversCount = 100
@@ -45,44 +98,4 @@ defaultInput = Input {
 , processoringTime = 10
 , diskingTime = 10
 , requeryChance = 0.1
-}
-
-input1 :: Input
-input1 = defaultInput {
-  afterQueryTime = 80
-, formQueryTime = 80
-, sendingTime = 10
-, processoringTime = 10 
-}
-
-input2 :: Input
-input2 = defaultInput {
-  afterQueryTime = 160
-, formQueryTime = 160
-, sendingTime = 20
-, processoringTime = 20 
-}
-
-input3 :: Input
-input3 = defaultInput {
-  afterQueryTime = 240
-, formQueryTime = 240
-, sendingTime = 20
-, processoringTime = 20 
-}
-
-input4 :: Input
-input4 = defaultInput {
-  afterQueryTime = 160
-, formQueryTime = 160
-, sendingTime = 10
-, processoringTime = 10 
-}
-
-input5 :: Input
-input5 = defaultInput {
-  afterQueryTime = 80
-, formQueryTime = 80
-, sendingTime = 20
-, processoringTime = 20 
 }

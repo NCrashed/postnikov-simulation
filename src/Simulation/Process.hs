@@ -59,7 +59,7 @@ simulateProcess Input{..} = do
   
   constructClients :: MsgBuffer -> Event [(MsgBuffer, Ref Double, Ref Double, Var Double)]
   constructClients cable = do
-    replicateWithIndexM workstaionsCount $ \i -> do
+    replicateWithIndexM workstationsCount $ \i -> do
       responseVar <- liftSimulation $ newVar 0 
       (b1, p1, ref1) <- formQueryProcess i cable responseVar
       (b2, p2, ref2) <- afterQueryProcess b1

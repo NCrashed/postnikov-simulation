@@ -8,7 +8,7 @@ data Input = Input {
   , formQueryTime :: Float -- ^ среднее время формирования запроса от рабочей станции
   , sendingTime :: Float -- ^ среднее время передачи запроса по каналу
   , serversCount :: Int -- ^ Число серверов
-  , workstaionsCount :: Int -- ^ Число рабочих станций
+  , workstationsCount :: Int -- ^ Число рабочих станций
   , processorsCount :: Int -- ^ Число процессоров
   , processoringTime :: Float -- ^ среднее время обработки в ЦП сервера
   , diskingTime :: Float -- ^ среднее время дообработки в диске сервера
