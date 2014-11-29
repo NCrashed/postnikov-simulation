@@ -1,10 +1,33 @@
 module Main where
 
-import Data.Functor
+import Simulation.Types
 import Simulation.Analytic
+import Simulation.Process
+import Graphics.Vty.Widgets.All
+import qualified Data.Text as T
+import Control.Monad
 
-main::IO()
-main = print $ simulate $ Input {
+main :: IO()
+main =  do
+  e <- editWidget
+  ui <- centered e
+  
+  fg <- newFocusGroup
+  void $ addToFocusGroup fg e
+  
+  c <- newCollection
+  void $ addToCollection c ui fg
+  
+  e `onActivate` (getEditText >=>
+   (error . ("You entered: " ++) . T.unpack))
+    
+  runUi c defaultContext
+
+inputs :: [Input]
+inputs = [input1, input2, input3, input4, input5]
+
+defaultInput :: Input
+defaultInput = Input {
   worksationsCount = 8
 , afterQueryTime = 80
 , formQueryTime = 80
@@ -15,23 +38,6 @@ main = print $ simulate $ Input {
 , processoringTime = 10
 , diskingTime = 10
 , requeryChance = 0.1
-}
-
-inputs :: [Input]
-inputs = [input1, input2, input3, input4, input5]
-
-defaultInput :: Input
-defaultInput = Input {
-  worksationsCount = 8
-, afterQueryTime = 0
-, formQueryTime = 0
-, serversCount = 2
-, processorsCount = 1
-, disksCount = 1
-, sendingTime = 0
-, processoringTime = 0
-, diskingTime = 0
-, requeryChance = 0
 }
 
 input1 :: Input

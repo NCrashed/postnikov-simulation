@@ -1,14 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 module Simulation.Analytic(
-    Input(..)
-  , Output(..)
-  , simulate
+    simulateAnalytic
   ) where
   
 import Simulation.Types
 
-simulate :: Input -> Output
-simulate Input{..} = let finalLamda = until stopCond nextLamda startLamda
+simulateAnalytic :: Input -> Output
+simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamda
   in Output {
     averageResponse = responseTime finalLamda
   , loadWorkstation = (afterQueryTime + formQueryTime) / responseTime finalLamda
