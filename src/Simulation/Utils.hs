@@ -9,7 +9,7 @@ type Buffer a = FCFSQueue a
 type BufferedProcess a = (Buffer a, Process (), Ref Double)
 
 buffersCapacity :: Int
-buffersCapacity = 100
+buffersCapacity = 10000
 
 newBuffer :: Event (Buffer a)
 newBuffer = newFCFSQueue buffersCapacity
