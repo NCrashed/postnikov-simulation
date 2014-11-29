@@ -8,11 +8,11 @@ import Simulation.Types
 simulateAnalytic :: Input -> Output
 simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamda
   in Output {
-    averageResponse = responseTime finalLamda
-  , loadWorkstation = (afterQueryTime + formQueryTime) / responseTime finalLamda
-  , loadUser = formQueryTime / responseTime finalLamda
+    averageResponse = cycleTime finalLamda / 2
+  , loadWorkstation = (afterQueryTime + formQueryTime) / cycleTime finalLamda
+  , loadUser = formQueryTime / cycleTime finalLamda
   , loadCable = 2 * finalLamda * sendingTime
-  , loadServer = beta * finalLamda * diskP * (processoringTime + diskingTime)
+  , loadServer = beta * finalLamda * serverP * (processoringTime + diskingTime)
   , loadDisk = beta * finalLamda * diskP * diskingTime
   , loadCP = beta * finalLamda * processoringTime / fprocCount / fservCount
   }
@@ -20,6 +20,7 @@ simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamd
   startLamda = k1 * minimum [lsending, lprocess, ldisking] * kd
   k1 = 0.9995
   beta = 1 / (1 - requeryChance)
+  serverP = 1 / fservCount
   diskP = 1 / fromIntegral disksCount / fservCount
   lsending = 1/(2*sendingTime)
   lprocess = fromIntegral serversCount * fromIntegral processorsCount/(beta*processoringTime)
@@ -33,8 +34,8 @@ simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamd
   calcTcp lamda = beta * processoringTime / (1 - (beta * lamda * processoringTime / (fservCount*fprocCount)) ** (fservCount*fprocCount))
   calcTd lamda = beta * diskingTime / (1 - beta * diskP * lamda * diskingTime)
   
-  responseTime lamda = afterQueryTime + formQueryTime + calcTk lamda + calcTcp lamda + calcTd lamda
-  newLamda lamda = (fworkCount + 1) / responseTime lamda
+  cycleTime lamda = afterQueryTime + formQueryTime + calcTk lamda + calcTcp lamda + calcTd lamda
+  newLamda lamda = (fworkCount + 1) / cycleTime lamda
   nextLamda lamda = lamda - (lamda - newLamda lamda) / fromIntegral k2
   k2 = 10 :: Int
   delta = 0.00001

@@ -7,8 +7,15 @@ import Graphics.Vty.Widgets.All
 import qualified Data.Text as T
 import Control.Monad
 
-main :: IO()
-main =  do
+main :: IO ()
+main = do
+  let outputAnal = simulateAnalytic defaultInput
+  outputSim <- runSimulateProcess defaultInput
+  print outputAnal
+  print outputSim
+
+gui :: IO()
+gui =  do
   e <- editWidget
   ui <- centered e
   
@@ -31,9 +38,9 @@ defaultInput = Input {
   worksationsCount = 8
 , afterQueryTime = 80
 , formQueryTime = 80
-, serversCount = 5
+, serversCount = 100
 , processorsCount = 1
-, disksCount = 1
+, disksCount = 100
 , sendingTime = 10
 , processoringTime = 10
 , diskingTime = 10
