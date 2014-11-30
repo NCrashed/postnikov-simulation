@@ -22,7 +22,7 @@ runSimulateProcess :: Input -> IO Output
 runSimulateProcess = flip runSimulation specs . runEventInStartTime . simulateProcess
   where specs = Specs {
     spcStartTime = 0.0,
-    spcStopTime = 1000000.0,
+    spcStopTime = 100000.0,
     spcDT = 1.0,
     spcMethod = RungeKutta4,
     spcGeneratorType = SimpleGenerator 
