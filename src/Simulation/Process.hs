@@ -145,20 +145,23 @@ simulateProcess Input{..} = do
         Query{} -> do
           curCount <- getCount counter
           when (curCount <= 0) $ saveTime startRef
+          when (curCount > 0) $ rebaseTime startRef busyRef
           addToRef counter 1
           cpui <- liftParameter $ randomUniformInt 0 (processorsCount-1)
           enqueue (cpus !! cpui) msg
         Requery q -> do
+          rebaseTime startRef busyRef
           cpui <- liftParameter $ randomUniformInt 0 (processorsCount-1)
           enqueue (cpus !! cpui) q
         Response{} -> do
           addToRef counter (-1)
-          curCount <- getCount counter
-          when (curCount <= 0) $ do
-            startTime <- liftEvent $ readRef startRef
-            curTime <- liftDynamics time
-            addToRef busyRef (curTime - startTime)
+          rebaseTime startRef busyRef
           enqueue cable msg
     where
       getCount counter = liftEvent $ readRef counter
       saveTime ref = liftEvent (writeRef ref =<< liftDynamics time)
+      rebaseTime ref loadRef= do 
+        ot <- liftEvent $ readRef ref
+        nt <- liftDynamics time
+        addToRef loadRef (nt - ot)
+        liftEvent $ writeRef ref nt

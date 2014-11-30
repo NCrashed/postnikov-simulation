@@ -5,7 +5,6 @@ import Simulation.Types
 import Simulation.Analytic
 import Simulation.Process
 import Graphics.Vty.Widgets.All
-import Graphics.Vty.Input.Events
 import qualified Data.Text as T
 import Control.Monad
 import System.Exit (exitSuccess)
@@ -13,10 +12,6 @@ import Data.IORef
 
 main :: IO ()
 main = gui
---  let outputAnal = simulateAnalytic defaultInput
---  outputSim <- runSimulateProcess defaultInput
---  print outputAnal
---  print outputSim
 
 editingScreen :: Collection -> (Input -> IO ()) -> IO () -> IO (IO ())
 editingScreen collection okAction cancelAction = do

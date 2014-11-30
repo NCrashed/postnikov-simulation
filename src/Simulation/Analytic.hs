@@ -7,20 +7,21 @@ import Simulation.Types
 
 simulateAnalytic :: Input -> Output
 simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamda
+                                 loadDisk' = beta * finalLamda * diskP * diskingTime
+                                 loadCP' = beta * finalLamda * processoringTime / fprocCount / fservCount
   in Output {
     averageResponse = cycleTime finalLamda / 2
   , loadWorkstation = (afterQueryTime + formQueryTime) / cycleTime finalLamda
   , loadUser = formQueryTime / cycleTime finalLamda
   , loadCable = 2 * finalLamda * sendingTime
-  , loadServer = beta * finalLamda * serverP * (processoringTime + diskingTime)
-  , loadDisk = beta * finalLamda * diskP * diskingTime
-  , loadCP = beta * finalLamda * processoringTime / fprocCount / fservCount
+  , loadServer = 1 - loadDisk' * loadCP'
+  , loadDisk = loadDisk'
+  , loadCP = loadCP'
   }
   where
   startLamda = k1 * minimum [lsending, lprocess, ldisking] * kd
   k1 = 0.9995
   beta = 1 / (1 - requeryChance)
-  serverP = 1 / fservCount
   diskP = 1 / fromIntegral disksCount / fservCount
   lsending = 1/(2*sendingTime)
   lprocess = fromIntegral serversCount * fromIntegral processorsCount/(beta*processoringTime)
