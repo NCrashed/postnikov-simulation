@@ -10,7 +10,7 @@ simulateAnalytic Input{..} = let finalLamda = until stopCond nextLamda startLamd
                                  loadDisk' = beta * finalLamda * diskP * diskingTime
                                  loadCP' = beta * finalLamda * processoringTime / fprocCount / fservCount
   in Output {
-    averageResponse = cycleTime finalLamda / 2
+    averageResponse = beta * cycleTime finalLamda / 2
   , loadWorkstation = (afterQueryTime + formQueryTime) / cycleTime finalLamda
   , loadUser = formQueryTime / cycleTime finalLamda
   , loadCable = 2 * finalLamda * sendingTime

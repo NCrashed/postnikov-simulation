@@ -24,9 +24,9 @@ editingScreen collection okAction cancelAction = do
   workstationsCountEdit <- labeledText fg tbl "Кол-во станций" "8"
   processorsCountEdit <- labeledText fg tbl "Кол-во процессоров"  "1"
   processoringTimeEdit <- labeledText fg tbl "Время обработки ЦПУ" "10"
-  diskingTimeEdit <- labeledText fg tbl "Время обработки диском" "10"
+  diskingTimeEdit <- labeledText fg tbl "Время обработки диском" "1"
   disksCountEdit <- labeledText fg tbl "Кол-во дисков" "1"
-  requeryChanceEdit <- labeledText fg tbl "Вероятность повтора" "0.1"
+  requeryChanceEdit <- labeledText fg tbl "Вероятность повтора" "0"
   
   title <- hCentered =<< plainText "Enter model parameters"
   
@@ -85,12 +85,15 @@ resultsScreen collection backAction exitAction = do
   title3 <- plainText "Разница моделей"
   addRow tbl $ title0 .|. title1 .|. title2 .|. title3
   (al1, sl1, dl1) <- row tbl "Время отклика системы"
+  (al8, sl8, dl8) <- row tbl "Время цикла системы"
   (al2, sl2, dl2) <- row tbl "Загрузка рабочей станции"
   (al3, sl3, dl3) <- row tbl "Загрузка пользователя"
   (al4, sl4, dl4) <- row tbl "Загрузка канала"
-  (al5, sl5, dl5) <- row tbl "Загрузка сервера"
+  --(al5, sl5, dl5) <- row tbl "Загрузка сервера"
   (al6, sl6, dl6) <- row tbl "Загрузка дисков"
   (al7, sl7, dl7) <- row tbl "Загрузка процессора"
+  (al9, sl9, dl9) <- row tbl "Кол-во работающих станций"
+  (al10, sl10, dl10) <- row tbl "Кол-во станций форм. запрос"
   
   bBack <- newButton "Back"
   void $ addToFocusGroup fg (buttonWidget bBack)
@@ -108,11 +111,11 @@ resultsScreen collection backAction exitAction = do
   let repeatHandler = \input -> do
       writeIORef lastInput input
       let analRes = simulateAnalytic input
-      fillColumn analRes al1 al2 al3 al4 al5 al6 al7
+      fillColumn input analRes al1 al2 al3 al4 al6 al7 al8 al9 al10
       simRes <- runSimulateProcess input
-      fillColumn simRes sl1 sl2 sl3 sl4 sl5 sl6 sl7
+      fillColumn input simRes sl1 sl2 sl3 sl4 sl6 sl7 sl8 sl9 sl10
       return () 
-      fillDifference analRes simRes dl1 dl2 dl3 dl4 dl5 dl6 dl7
+      fillDifference input analRes simRes dl1 dl2 dl3 dl4 dl6 dl7 dl8 dl9 dl10
   bRepeat `onButtonPressed` (const $ repeatHandler =<< readIORef lastInput)
   
   screen <- return tbl <--> 
@@ -131,25 +134,32 @@ resultsScreen collection backAction exitAction = do
       addRow tbl $ cell1 .|. cell2 .|. cell3 .|. cell4
       return (cell2, cell3, cell4)
     
-    fillColumn Output{..} l1 l2 l3 l4 l5 l6 l7 = do
+    fillColumn input Output{..} l1 l2 l3 l4 l6 l7 l8 l9 l10 = do
       setText l1 $ T.pack $ show $ averageResponse
       setText l2 $ T.pack $ show $ loadWorkstation
       setText l3 $ T.pack $ show $ loadUser
       setText l4 $ T.pack $ show $ loadCable
-      setText l5 $ T.pack $ show $ loadServer
+      --setText l5 $ T.pack $ show $ loadServer
       setText l6 $ T.pack $ show $ loadDisk
       setText l7 $ T.pack $ show $ loadCP
-    
-    fillDifference o1 o2 l1 l2 l3 l4 l5 l6 l7 = do
+      setText l8 $ T.pack $ show $ averageResponse * 2
+      setText l9 $ T.pack $ show $ loadWorkstation * fromIntegral (workstationsCount input)
+      setText l10 $ T.pack $ show $ loadUser * fromIntegral (workstationsCount input)
+      
+    fillDifference input o1 o2 l1 l2 l3 l4 l6 l7 l8 l9 l10 = do
       let percent v1 v2 = T.pack $ show (100 * abs (v1 - v2) / v1) ++ "%"
       setText l1 $ percent (averageResponse o1) (averageResponse o2)
       setText l2 $ percent (loadWorkstation o1) (loadWorkstation o2)
       setText l3 $ percent (loadUser o1) (loadUser o2)
       setText l4 $ percent (loadCable o1) (loadCable o2)
-      setText l5 $ percent (loadServer o1) (loadServer o2)
+      --setText l5 $ percent (loadServer o1) (loadServer o2)
       setText l6 $ percent (loadDisk o1) (loadDisk o2)
       setText l7 $ percent (loadCP o1) (loadCP o2)
-      
+      setText l8 $ percent (2*averageResponse o1) (2*averageResponse o2)
+      setText l9 $ percent (loadWorkstation o1 * fromIntegral (workstationsCount input)) 
+                           (loadWorkstation o2 * fromIntegral (workstationsCount input))
+      setText l10 $ percent (loadUser o1 * fromIntegral (workstationsCount input)) 
+                            (loadUser o2 * fromIntegral (workstationsCount input))
 gui :: IO()
 gui =  do
 
